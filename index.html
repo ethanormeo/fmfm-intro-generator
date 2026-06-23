@@ -43,10 +43,14 @@ function chips(elId,arr,getI,setI){const el=document.getElementById(elId);arr.fo
 chips('arch',A,()=>ai,i=>ai=i); chips('dec',D,()=>di,i=>di=i);
 function gen(){const n=encodeURIComponent(document.getElementById('name').value||'Guest');document.getElementById('stage').src=`intro.html?a=${ai}&d=${di}&name=${n}&_=${Date.now()}`;}
 document.getElementById('gen').onclick=gen; document.getElementById('replay').onclick=gen;
-const RENDER="https://politicians-factors-brooklyn-dramatically.trycloudflare.com";
+let RENDER=null;
+fetch("render-url.json?_="+Date.now()).then(r=>r.json()).then(j=>RENDER=j.url).catch(()=>{});
 const dl=document.getElementById('dl');
 dl.onclick=async()=>{
-  const orig='⤓ Download HQ master'; dl.disabled=true; dl.textContent='Rendering… 0%';
+  const orig='⤓ Download HQ master';
+  if(!RENDER){try{RENDER=(await (await fetch('render-url.json?_='+Date.now())).json()).url;}catch(e){}}
+  if(!RENDER){alert('Renderer is offline right now.'); return;}
+  dl.disabled=true; dl.textContent='Rendering… 0%';
   try{
     const r=await fetch(RENDER+'/gen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({a:ai,d:di,name:document.getElementById('name').value||'Guest'})});
     const j=await r.json(); const id=j.id;
