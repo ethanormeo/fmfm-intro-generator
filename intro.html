@@ -1,0 +1,94 @@
+<!doctype html><html><head><meta charset=utf-8><style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:1920px;height:1080px;overflow:hidden;font-family:'Century Gothic Pro',sans-serif;}
+body{position:relative;background:transparent;}
+.stage{position:absolute;inset:0;background:radial-gradient(135% 118% at 50% 4%,#14186a 0%,#0a0c44 38%,#05062a 70%,#04041e 100%);}
+.floor{position:absolute;left:0;right:0;bottom:0;height:430px;background:linear-gradient(180deg,#04041e,#0a1030 30%,#0d1640);}
+.led{position:absolute;top:0;bottom:0;width:30px;filter:blur(3px);background:linear-gradient(90deg,#9bff1a,#3f7a00);box-shadow:0 0 90px 16px rgba(143,255,26,.45);}
+.led.l{left:40px}.led.r{right:40px}
+.mazeF{position:absolute;right:-150px;bottom:-110px;width:940px;opacity:.5;filter:drop-shadow(0 0 26px rgba(143,255,26,.5));}
+.board{position:absolute;left:120px;top:62px;width:1680px;display:grid;grid-template-columns:300px repeat(4,1fr);grid-template-rows:104px repeat(4,104px);gap:20px;}
+.c{border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:bold;position:relative;}
+.hdr{background:linear-gradient(180deg,#9bf21a,#62b300);color:#0c1a00;font-size:56px;box-shadow:0 0 30px rgba(143,255,26,.35),inset 0 2px 0 rgba(255,255,255,.5);}
+.lbl{background:linear-gradient(180deg,#10124e,#0a0c34);color:#9bff1a;font-size:32px;letter-spacing:1px;border:2px solid rgba(143,255,26,.5);box-shadow:inset 0 0 26px rgba(0,0,20,.6);}
+.box{background:linear-gradient(180deg,#161a56,#0b0e36);border:2px solid rgba(143,255,26,.28);box-shadow:inset 0 -10px 24px rgba(0,0,15,.7);}
+.sel .fill{position:absolute;inset:0;border-radius:12px;opacity:0;background:radial-gradient(120% 120% at 50% 42%,#c6ff5a,#8fe000);}
+.sel .nm{position:relative;opacity:0;color:#160b96;font-size:46px;font-weight:bold;white-space:nowrap;}
+.cursor{position:absolute;width:64px;z-index:9;}
+.cursor img{width:100%;display:block;filter:drop-shadow(0 0 8px rgba(150,255,20,.55)) drop-shadow(0 6px 8px rgba(0,0,0,.5));}
+.burst{position:absolute;width:120px;height:120px;z-index:8;opacity:0;border-radius:50%;background:radial-gradient(circle,rgba(198,255,90,.9),transparent 60%);}
+.wm{position:absolute;left:0;right:0;bottom:196px;text-align:center;font-weight:bold;font-size:158px;letter-spacing:1px;background:linear-gradient(96deg,#2f6bff,#3aa6ff 30%,#7cdf00 70%,#9bff1a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 3px 0 #0a1a4a,0 6px 0 #081640,0 9px 0 #061232,0 12px 0 #040d24;}
+.pod{position:absolute;left:0;right:0;bottom:140px;text-align:center;color:#9bff1a;font-weight:bold;font-size:38px;letter-spacing:13px;}
+.pod .r{display:inline-block;width:120px;height:3px;background:#9bff1a;vertical-align:middle;margin:0 24px;}
+.tag{position:absolute;left:0;right:0;bottom:74px;text-align:center;color:#fff;font-weight:bold;font-size:30px;letter-spacing:2px;}
+.tag .g{color:#9bff1a;}
+.vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 280px 50px rgba(2,2,20,.5);}
+.portal{position:absolute;width:60px;height:34px;border-radius:10px;z-index:20;transform:scale(0);background:#75d900;}
+.card{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;}
+.ceyebrow{color:#160b96;font-weight:bold;font-size:36px;letter-spacing:10px;opacity:.8;margin-bottom:20px;}
+.cname{color:#160b96;font-weight:bold;font-size:172px;letter-spacing:1px;line-height:.95;text-align:center;}
+.csub{color:#160b96;font-weight:bold;font-size:46px;letter-spacing:4px;margin-top:28px;}
+.clock{position:absolute;bottom:70px;color:#160b96;font-weight:bold;font-size:32px;letter-spacing:10px;opacity:.9;}
+@keyframes mazeIn{from{opacity:0;transform:translateX(70px) scale(.95)}to{opacity:.5;transform:none}}
+@keyframes ledIn{from{opacity:0}to{opacity:.9}}
+@keyframes cellIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes upIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes curMove{0%{opacity:0;transform:translate(-580px,400px)}14%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes press{0%,55%{transform:none}72%{transform:scale(.82)}100%{transform:none}}
+@keyframes burstK{0%{opacity:0;transform:scale(.2)}35%{opacity:1}100%{opacity:0;transform:scale(2)}}
+@keyframes fillIn{from{opacity:0}to{opacity:1}}
+@keyframes glowIn{from{box-shadow:0 0 0 rgba(150,255,20,0)}to{box-shadow:0 0 64px rgba(150,255,20,.9),inset 0 0 40px rgba(190,255,90,.55)}}
+@keyframes lockIn{from{box-shadow:0 0 0 rgba(143,255,26,0)}to{box-shadow:0 0 30px rgba(143,255,26,.7)}}
+@keyframes nameIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+@keyframes stageOut{from{opacity:1}to{opacity:0}}
+@keyframes portalFull{0%{transform:scale(0);opacity:.85}9%{transform:scale(46);opacity:1}78%{transform:scale(46);opacity:1}100%{transform:scale(0);opacity:1}}
+@keyframes cardLife{0%{opacity:0}13%{opacity:1}84%{opacity:1}100%{opacity:0}}
+@keyframes cnameUp{from{opacity:0;transform:translateY(44px)}to{opacity:1;transform:none}}
+</style></head><body>
+<div class="stage" id="stage">
+  <div class="floor"></div><div class="led l"></div><div class="led r"></div>
+  <img class="mazeF" src="maze_green.png">
+  <div class="board" id="board"></div>
+  <div class="cursor" id="cursor"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='40'><path d='M3 2 L3 32 L11 24 L16 36 L21 34 L16 22 L27 22 Z' fill='white' stroke='%230a1a00' stroke-width='1.4' stroke-linejoin='round'/></svg>"></div>
+  <div class="burst" id="burst"></div>
+  <div class="wm">FREE ME FROM ME</div>
+  <div class="pod"><span class="r"></span>THE PODCAST<span class="r"></span></div>
+  <div class="tag">ESCAPING THE MAZE OF SELF-CENTEREDNESS BY EMBRACING A <span class="g">GOD-CENTERED LIFE</span></div>
+  <div class="vig"></div>
+</div>
+<div class="portal" id="portal"></div>
+<div class="card" id="card"><div class="ceyebrow">THIS WEEK&rsquo;S GUEST</div><div class="cname" id="cname"></div><div class="csub" id="csub"></div><div class="clock">FREE ME FROM ME &middot; THE PODCAST</div></div>
+<script>
+const A=['PERFORMER','COMPARER','AVOIDER','CONTROLLER'], D=['20s','30s','40s','50s'];
+const q=new URLSearchParams(location.search);
+const ai=+(q.get('a')??1), di=+(q.get('d')??1), name=(q.get('name')||'Jane Doe'); const tparam=q.get('t');
+const board=document.getElementById('board'); let selCell,colHdr,rowLbl;
+function cell(cls,txt){const e=document.createElement('div');e.className='c '+cls;if(txt)e.textContent=txt;return e;}
+board.appendChild(cell(''));
+const hdrs=D.map(d=>{const e=cell('hdr',d);board.appendChild(e);return e;});
+A.forEach((a,r)=>{const lb=cell('lbl',a);board.appendChild(lb);for(let cI=0;cI<4;cI++){const isSel=(r===ai&&cI===di);const b=cell('box'+(isSel?' sel':''));if(isSel){b.innerHTML='<div class="fill"></div><div class="nm">'+name+'</div>';selCell=b;rowLbl=lb;colHdr=hdrs[cI];}board.appendChild(b);}});
+function anim(el,kf,dur,delay,extra){el.style.animation=`${kf} ${dur}ms ${extra||'cubic-bezier(.2,.8,.2,1)'} ${delay}ms both ${tparam!=null?'paused':''}`;}
+anim(document.querySelector('.mazeF'),'mazeIn',800,0);
+document.querySelectorAll('.led').forEach(l=>anim(l,'ledIn',600,0));
+[...board.children].forEach((c,i)=>anim(c,'cellIn',420,80+i*36));
+anim(document.querySelector('.wm'),'upIn',620,250);anim(document.querySelector('.pod'),'upIn',620,330);anim(document.querySelector('.tag'),'upIn',620,410);
+const cur=document.getElementById('cursor'),burst=document.getElementById('burst'),portal=document.getElementById('portal');
+const br=selCell.getBoundingClientRect();
+const cx=br.left+br.width*0.86, cy=br.top+br.height*0.74;
+cur.style.left=cx+'px';cur.style.top=cy+'px';burst.style.left=(cx-44)+'px';burst.style.top=(cy-44)+'px';
+portal.style.left=(br.left+br.width/2-30)+'px';portal.style.top=(br.top+br.height/2-17)+'px';
+anim(cur,'curMove',900,620);
+cur.querySelector('img').style.animation=`press 220ms ease 1500ms both ${tparam!=null?'paused':''}`;
+anim(burst,'burstK',260,1640,'ease-out');
+anim(selCell.querySelector('.fill'),'fillIn',360,1660,'ease-out');anim(selCell,'glowIn',360,1660,'ease-out');
+anim(rowLbl,'lockIn',320,1720,'ease-out');anim(colHdr,'lockIn',320,1720,'ease-out');
+anim(selCell.querySelector('.nm'),'nameIn',520,1990,'cubic-bezier(.2,.9,.2,1)');
+// grow -> hold -> SHRINK back to reveal alpha
+anim(portal,'portalFull',4300,3500,'cubic-bezier(.5,.05,.4,1)');
+anim(document.getElementById('stage'),'stageOut',480,3950,'ease-out');
+const cn=document.getElementById('cname'); cn.textContent=name; cn.style.fontSize=Math.min(172,Math.floor(1750/Math.max(7,name.length)))+'px';
+document.getElementById('csub').textContent='THE '+A[ai]+' · '+D[di];
+anim(document.getElementById('card'),'cardLife',2750,4150,'ease-out');
+anim(cn,'cnameUp',640,4260,'cubic-bezier(.2,.9,.2,1)');
+if(tparam!=null){const T=+tparam;function seek(){document.getAnimations().forEach(a=>{a.pause();a.currentTime=T;});}seek();requestAnimationFrame(seek);}
+</script></body></html>
