@@ -43,7 +43,21 @@ function chips(elId,arr,getI,setI){const el=document.getElementById(elId);arr.fo
 chips('arch',A,()=>ai,i=>ai=i); chips('dec',D,()=>di,i=>di=i);
 function gen(){const n=encodeURIComponent(document.getElementById('name').value||'Guest');document.getElementById('stage').src=`intro.html?a=${ai}&d=${di}&name=${n}&_=${Date.now()}`;}
 document.getElementById('gen').onclick=gen; document.getElementById('replay').onclick=gen;
-document.getElementById('dl').onclick=()=>alert('HQ render (4K + ProRes alpha) wires to the render pipeline next — this preview is the exact look.');
+const RENDER="https://politicians-factors-brooklyn-dramatically.trycloudflare.com";
+const dl=document.getElementById('dl');
+dl.onclick=async()=>{
+  const orig='⤓ Download HQ master'; dl.disabled=true; dl.textContent='Rendering… 0%';
+  try{
+    const r=await fetch(RENDER+'/gen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({a:ai,d:di,name:document.getElementById('name').value||'Guest'})});
+    const j=await r.json(); const id=j.id;
+    const poll=setInterval(async()=>{
+      const s=await (await fetch(RENDER+'/status?id='+id)).json();
+      if(s.state==='rendering'||s.state==='queued') dl.textContent='Rendering… '+(s.pct||0)+'%';
+      else if(s.state==='done'){clearInterval(poll); dl.disabled=false; dl.textContent=orig; const a=document.createElement('a'); a.href=RENDER+s.url; document.body.appendChild(a); a.click(); a.remove();}
+      else {clearInterval(poll); dl.disabled=false; dl.textContent=orig; alert('Render issue: '+(s.err||s.state));}
+    },2000);
+  }catch(e){dl.disabled=false; dl.textContent=orig; alert('Could not reach the renderer (is the Mac/tunnel up?).');}
+};
 function fit(){const w=document.getElementById('sw').clientWidth;document.getElementById('stage').style.transform='scale('+(w/1920)+')';}
 addEventListener('resize',fit); fit();
 gen();
