@@ -37,7 +37,7 @@ iframe{position:absolute;top:0;left:0;width:1920px;height:1080px;border:0;backgr
   <div class="note">Live preview renders the exact animation in-browser. "Download HQ master" produces the pixel-perfect 4K + alpha file (render pipeline — wiring next).</div>
 </div>
 <script>
-const A=['PERFORMER','COMPARER','AVOIDER','CONTROLLER'], D=['20s','30s','40s','50s'];
+const A=['PERFORMER','COMPARER','AVOIDER','CONTROLLER'], D=['20s','30s','40s','50s+'];
 let ai=1, di=1;
 function chips(elId,arr,getI,setI){const el=document.getElementById(elId);arr.forEach((t,i)=>{const b=document.createElement('div');b.className='chip'+(getI()===i?' sel':'');b.textContent=t;b.onclick=()=>{setI(i);[...el.children].forEach((c,j)=>c.classList.toggle('sel',j===i));};el.appendChild(b);});}
 chips('arch',A,()=>ai,i=>ai=i); chips('dec',D,()=>di,i=>di=i);
