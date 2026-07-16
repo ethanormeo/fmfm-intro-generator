@@ -32,32 +32,40 @@ iframe{position:absolute;top:0;left:0;width:1920px;height:1080px;border:0;backgr
   <div class="stagewrap" id="sw"><div class="hint">▶ &nbsp;preview — the green retract reveals your episode video</div><iframe id="stage" title="preview"></iframe></div>
   <div class="actions">
     <button class="go ghost" id="replay">↻ Replay</button>
-    <button class="go ghost" id="dl">⤓ Download HQ master</button>
+    <div class="fld" style="gap:7px"><span>FORMAT</span><div class="row" id="fmt"></div></div>
+    <button class="go" id="dl">⤓ Download</button>
   </div>
-  <div class="note">Live preview renders the exact animation in-browser. "Download HQ master" produces the pixel-perfect 4K + alpha file (render pipeline — wiring next).</div>
+  <div class="note" id="fmtnote"></div>
+  <div class="note">Both formats include the intro sound. The live preview above shows the exact animation in-browser (the transparent tail is the green retract; it becomes black in the MP4 and stays clear in the MOV).</div>
 </div>
 <script>
 const A=['PERFORMER','COMPARER','AVOIDER','CONTROLLER'], D=['20s','30s','40s','50s+'];
 let ai=1, di=1;
 function chips(elId,arr,getI,setI){const el=document.getElementById(elId);arr.forEach((t,i)=>{const b=document.createElement('div');b.className='chip'+(getI()===i?' sel':'');b.textContent=t;b.onclick=()=>{setI(i);[...el.children].forEach((c,j)=>c.classList.toggle('sel',j===i));};el.appendChild(b);});}
 chips('arch',A,()=>ai,i=>ai=i); chips('dec',D,()=>di,i=>di=i);
+const FMT=[{k:'mp4',label:'MP4',desc:'MP4 — plays everywhere, has sound, fades to black after the reveal. Best for posting or sending (small file).'},
+           {k:'mov',label:'MOV · alpha',desc:'MOV — ProRes 4444 with a transparent background + sound. For editing: drop it over your episode video (large file).'}];
+let fmt='mp4';
+const fmtEl=document.getElementById('fmt'),fmtNote=document.getElementById('fmtnote');
+FMT.forEach((f,i)=>{const b=document.createElement('div');b.className='chip'+(f.k===fmt?' sel':'');b.textContent=f.label;b.onclick=()=>{fmt=f.k;[...fmtEl.children].forEach((c,j)=>c.classList.toggle('sel',FMT[j].k===fmt));fmtNote.textContent=f.desc;};fmtEl.appendChild(b);});
+fmtNote.textContent=FMT[0].desc;
 function gen(){const n=encodeURIComponent(document.getElementById('name').value||'Guest');document.getElementById('stage').src=`intro.html?a=${ai}&d=${di}&name=${n}&_=${Date.now()}`;}
 document.getElementById('gen').onclick=gen; document.getElementById('replay').onclick=gen;
 let RENDER=null;
 fetch("render-url.json?_="+Date.now()).then(r=>r.json()).then(j=>RENDER=j.url).catch(()=>{});
 const dl=document.getElementById('dl');
 dl.onclick=async()=>{
-  const orig='⤓ Download HQ master';
+  const orig='⤓ Download';
   if(!RENDER){try{RENDER=(await (await fetch('render-url.json?_='+Date.now())).json()).url;}catch(e){}}
   if(!RENDER){alert('Renderer is offline right now.'); return;}
   dl.disabled=true; dl.textContent='Rendering… 0%';
   try{
-    const r=await fetch(RENDER+'/gen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({a:ai,d:di,name:document.getElementById('name').value||'Guest'})});
+    const r=await fetch(RENDER+'/gen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({a:ai,d:di,name:document.getElementById('name').value||'Guest',fmt:fmt})});
     const j=await r.json(); const id=j.id;
     const poll=setInterval(async()=>{
       const s=await (await fetch(RENDER+'/status?id='+id)).json();
       if(s.state==='rendering'||s.state==='queued') dl.textContent='Rendering… '+(s.pct||0)+'%';
-      else if(s.state==='done'){clearInterval(poll); dl.disabled=false; dl.textContent=orig; const a=document.createElement('a'); a.href=RENDER+s.url; document.body.appendChild(a); a.click(); a.remove();}
+      else if(s.state==='done'){clearInterval(poll); dl.disabled=false; dl.textContent=orig; const a=document.createElement('a'); a.href=RENDER+s.url; a.download='FMFM_Intro_'+(document.getElementById('name').value||'Guest').replace(/[^\w]+/g,'_')+'.'+fmt; document.body.appendChild(a); a.click(); a.remove();}
       else {clearInterval(poll); dl.disabled=false; dl.textContent=orig; alert('Render issue: '+(s.err||s.state));}
     },2000);
   }catch(e){dl.disabled=false; dl.textContent=orig; alert('Could not reach the renderer (is the Mac/tunnel up?).');}
